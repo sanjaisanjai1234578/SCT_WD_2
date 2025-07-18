@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animated Stopwatch</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', monospace;
+      background: linear-gradient(270deg, #0f2027, #203a43, #2c5364);
+      background-size: 600% 600%;
+      animation: gradientShift 15s ease infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @keyframes gradientShift {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(0, 255, 255, 0.2);
+      transition: all 0.3s ease;
+      will-change: transform;
+    }
+
+    .container:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+    }
+
+    h1 {
+      color: #ffffff;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px #000;
+    }
+
+    .time {
+      font-size: 2.5rem;
+      color: #00ffff;
+      margin-bottom: 20px;
+      font-variant-numeric: tabular-nums;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 2px;
+      min-width: 300px;
+    }
+
+    .buttons button {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      will-change: transform;
+    }
+
+    .buttons button:hover {
+      background: #00ffff;
+      color: #000;
+      transform: scale(1.1);
+    }
+
+    .laps {
+      margin-top: 20px;
+      color: #fff;
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+    }
+
+    .laps::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .laps::-webkit-scrollbar-thumb {
+      background-color: #00ffff;
+      border-radius: 10px;
+    }
+
+    .lap-item {
+      padding: 5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⏱️ Stopwatch App</h1>
+    <div class="time" id="display">00:00:00.00</div>
+    <div class="buttons">
+      <button onclick="start()">Start</button>
+      <button onclick="pause()">Pause</button>
+      <button onclick="reset()">Reset</button>
+      <button onclick="lap()">Lap</button>
+    </div>
+    <div class="laps" id="laps"></div>
+  </div>
+
+  <script>
+    let timer;
+    let [ms, s, m, h] = [0, 0, 0, 0];
+    let running = false;
+    let lastUpdate = performance.now();
+
+    function updateDisplay() {
+      const formatted = `${h.toString().padStart(2, '0')}:` +
+                        `${m.toString().padStart(2, '0')}:` +
+                        `${s.toString().padStart(2, '0')}.` +
+                        `${ms.toString().padStart(2, '0')}`;
+      const display = document.getElementById("display");
+      if (display.textContent !== formatted) {
+        display.textContent = formatted;
+      }
+    }
+
+    function tick(now) {
+      if (!running) return;
+
+      const elapsed = now - lastUpdate;
+      lastUpdate = now;
+      ms += Math.floor(elapsed / 10);
+
+      while (ms >= 100) { ms -= 100; s++; }
+      while (s >= 60) { s -= 60; m++; }
+      while (m >= 60) { m -= 60; h++; }
+
+      updateDisplay();
+      requestAnimationFrame(tick);
+    }
+
+    function start() {
+      if (running) return;
+      running = true;
+      lastUpdate = performance.now();
+      requestAnimationFrame(tick);
+    }
+
+    function pause() {
+      running = false;
+    }
+
+    function reset() {
+      running = false;
+      [ms, s, m, h] = [0, 0, 0, 0];
+      updateDisplay();
+      document.getElementById("laps").innerHTML = "";
+    }
+
+    function lap() {
+      if (!running) return;
+      const lapTime = document.getElementById("display").textContent;
+      const lapItem = document.createElement("div");
+      lapItem.className = "lap-item";
+      lapItem.textContent = `Lap - ${lapTime}`;
+      document.getElementById("laps").appendChild(lapItem);
+    }
+
+    updateDisplay();
+  </script>
+</body>
+</html>
